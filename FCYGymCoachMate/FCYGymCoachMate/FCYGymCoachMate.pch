@@ -1,0 +1,26 @@
+//
+//  FCYGymCoachMate.pch
+//  FCYGymCoachMate
+//
+//  Created by Fangcy on 2017/5/3.
+//  Copyright © 2017年 AsiaInfo. All rights reserved.
+//
+
+#ifndef FCYGymCoachMate_pch
+#define FCYGymCoachMate_pch
+
+#define kThemeColor [UIColor colorWithRed:0 green:(190 / 255.0) blue:(12 / 255.0) alpha:1]
+
+
+#import "Public.h"
+#import "Masonry.h"
+#import "MJRefresh.h"
+#import "UIImageView+WebCache.h"
+
+#import "CYProgressHUD.h"
+#import "ZJUsefulPickerView.h"
+
+#import "NSString+HexColor.h"     // 颜色转换
+
+
+#endif /* FCYGymCoachMate_pch */
