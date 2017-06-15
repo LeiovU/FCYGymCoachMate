@@ -47,7 +47,7 @@
         _weekClaendar.firstWeekday = 1;
         _weekClaendar.delegate = self;
         _weekClaendar.selectedDate = [NSDate date];
-        _weekClaendar.letterTextColor = [UIColor lightGrayColor];
+        _weekClaendar.letterTextColor = [UIColor blackColor];
     }
     return _weekClaendar;
 }
@@ -63,6 +63,7 @@
         _searchTextField.keyboardType = UIKeyboardTypeDefault;
         _searchTextField.returnKeyType = UIReturnKeyDone;
         _searchTextField.delegate = self;
+        _searchTextField.textAlignment = NSTextAlignmentRight;
     }
     return _searchTextField;
 }
@@ -70,7 +71,7 @@
 -(UIButton *)timeBtn {
     if (!_timeBtn) {
         _timeBtn = [UIButton buttonWithType:UIButtonTypeCustom];
-        [_timeBtn setTitle:@"9:00" forState:UIControlStateNormal];
+        [_timeBtn setTitle:@"19:00" forState:UIControlStateNormal];
         [_timeBtn setTitleColor:Font_Mid_Color forState:UIControlStateNormal];
         _timeBtn.titleLabel.font = [UIFont systemFontOfSize:12];
         [_timeBtn addTarget:self action:@selector(selectTimeClick) forControlEvents:UIControlEventTouchUpInside];
@@ -86,7 +87,7 @@
         [_todayBtn setImage:[UIImage imageNamed:@"rl_03"] forState:UIControlStateNormal];
         [_todayBtn setTitleColor:[UIColor blackColor] forState:UIControlStateNormal];
         [_todayBtn setImageEdgeInsets:UIEdgeInsetsMake(5, 10, 30, 10)];
-        [_todayBtn setTitleEdgeInsets:UIEdgeInsetsMake(30, 5, 0, 20)];
+        [_todayBtn setTitleEdgeInsets:UIEdgeInsetsMake(30, -_todayBtn.imageView.frame.size.width-5, 0, 0)];
         [_todayBtn setBackgroundColor:[@"#3d72fe" colorValue]];
     }
     return _todayBtn;
@@ -121,7 +122,7 @@
     [self.backView2 addSubview:label];
     
     [_backView2 addSubview:self.searchTextField];
-    CGFloat width = kScreenWidth/4.0-30;
+    CGFloat width = kScreenWidth/3.0;
     [self.searchTextField mas_makeConstraints:^(MASConstraintMaker *make) {
         make.top.mas_equalTo(self.backView2.mas_top);
         make.right.mas_equalTo(self.backView2.mas_right).offset(-30);
@@ -162,6 +163,12 @@
     //  弹出选择框
     
     
+}
+
+#pragma mark -- textField 代理
+-(BOOL)textFieldShouldReturn:(UITextField *)textField {
+    [_searchTextField resignFirstResponder];
+    return YES;
 }
 
 

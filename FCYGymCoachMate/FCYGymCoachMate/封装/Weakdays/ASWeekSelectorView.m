@@ -100,6 +100,10 @@
   [self rebuildWeeks];
 }
 
+//-(void)setLetterTextColor:(UIColor *)letterTextColor {
+//    _letterTextColor = letterTextColor;
+//}
+
 #pragma mark - UIView
 
 - (id)initWithFrame:(CGRect)frame
@@ -241,7 +245,7 @@
 
 #pragma mark - ASSingleWeekViewDelegate
 
-- (UIView *)singleWeekView:(ASSingleWeekView *)singleWeekView viewForDate:(NSDate *)date withFrame:(CGRect)frame
+- (UIView *)singleWeekView:(ASSingleWeekView *)singleWeekView viewForDate:(NSDate *)date withFrame:(CGRect)frame index:(NSInteger)index
 {
   BOOL isSelection = [self date:date matchesDateComponentsOfDate:self.selectedDate];
   if (isSelection) {
@@ -268,7 +272,12 @@
   letterLabel.textAlignment = NSTextAlignmentCenter;
     letterLabel.backgroundColor = [@"#d4d9e4" colorValue];
   letterLabel.font = [UIFont systemFontOfSize:12];  // 字体
-  letterLabel.textColor = self.letterTextColor;
+    if (index == 0) {
+        letterLabel.textColor = Font_Week_Color;
+    }else {
+         letterLabel.textColor = self.letterTextColor;
+    }
+   
 //  letterLabel.text = [[self.dayNameDateFormatter stringFromDate:date] uppercaseString];
     letterLabel.text = [[self.dayNameDateFormatter stringFromDate:date] substringFromIndex:[self.dayNameDateFormatter stringFromDate:date].length-1];
     NSLog(@"%@",letterLabel.text);
@@ -279,11 +288,15 @@
   UILabel *numberLabel = [[UILabel alloc] initWithFrame:numberFrame];
   numberLabel.textAlignment = NSTextAlignmentCenter;
   numberLabel.font = [UIFont systemFontOfSize:18];
-  if (isSelection && ! self.isAnimating) {
-    numberLabel.textColor = self.selectorLetterTextColor;
-  } else {
-    numberLabel.textColor = [self numberTextColorForDate:date];
-  }
+    if (index == 0) {
+        numberLabel.textColor = Font_Week_Color;
+    }else {
+        if (isSelection && ! self.isAnimating) {
+            numberLabel.textColor = self.selectorLetterTextColor;
+        } else {
+            numberLabel.textColor = [self numberTextColorForDate:date];
+        }
+    }
   numberLabel.text = dayNumberText;
   numberLabel.tag = 100 + [dayNumberText integerValue];
   [wrapper addSubview:numberLabel];
@@ -344,7 +357,8 @@
 {
   if (setDefaults) {
     // default styles
-    _letterTextColor = [UIColor colorWithWhite:204.f/255 alpha:1];
+//    _letterTextColor = [UIColor colorWithWhite:204.f/255 alpha:1];
+      _letterTextColor = Font_Mid_Color;
     _numberTextColor = [UIColor colorWithWhite:77.f/255 alpha:1];
     _lineColor = [UIColor colorWithWhite:245.f/255 alpha:1];
     _selectorBackgroundColor = [UIColor whiteColor];

@@ -82,7 +82,8 @@
     CGRect frame = CGRectMake(dayIndex * widthPerItem, 0, widthPerItem, itemHeight);
     UIView *view = [self.delegate singleWeekView:self
                                      viewForDate:date
-                                       withFrame:frame];
+                                       withFrame:frame
+                    index:dayIndex];
     view.tag = dayIndex;
       if (view.tag == 6) {
            [self insertSubview:view atIndex:0];
