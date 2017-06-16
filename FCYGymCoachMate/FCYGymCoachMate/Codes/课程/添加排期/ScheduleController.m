@@ -43,7 +43,7 @@
 
 -(ASWeekSelectorView *)weekClaendar {
     if (!_weekClaendar) {
-        _weekClaendar = [[ASWeekSelectorView alloc]initWithFrame:CGRectMake(kScreenWidth/8.0, 0, kScreenWidth-kScreenWidth/8.0, WeekDay_H)];
+        _weekClaendar = [[ASWeekSelectorView alloc]initWithFrame:CGRectMake(kScreenWidth/6.0, 0, kScreenWidth-kScreenWidth/6.0, WeekDay_H)];
         _weekClaendar.firstWeekday = 1;
         _weekClaendar.delegate = self;
         _weekClaendar.selectedDate = [NSDate date];
@@ -82,12 +82,12 @@
 -(UIButton *)todayBtn {
     if (!_todayBtn) {
         _todayBtn = [UIButton buttonWithType:UIButtonTypeCustom];
-        _todayBtn.frame = CGRectMake(0, 0, kScreenWidth/8.0, WeekDay_H);
-        [_todayBtn setTitle:@"今" forState:UIControlStateNormal];
+        _todayBtn.frame = CGRectMake(0, 0, kScreenWidth/6.0, WeekDay_H);
+        [_todayBtn setTitle:@"选择" forState:UIControlStateNormal];
+        [_todayBtn setTitleColor:[UIColor whiteColor] forState:UIControlStateNormal];
         [_todayBtn setImage:[UIImage imageNamed:@"rl_03"] forState:UIControlStateNormal];
-        [_todayBtn setTitleColor:[UIColor blackColor] forState:UIControlStateNormal];
-        [_todayBtn setImageEdgeInsets:UIEdgeInsetsMake(5, 10, 30, 10)];
-        [_todayBtn setTitleEdgeInsets:UIEdgeInsetsMake(30, -_todayBtn.imageView.frame.size.width-5, 0, 0)];
+        [_todayBtn setImageEdgeInsets:UIEdgeInsetsMake(5, 12, 30, 10)];
+        [_todayBtn setTitleEdgeInsets:UIEdgeInsetsMake(30, -_todayBtn.imageView.frame.size.width-3, 0, 0)];
         [_todayBtn setBackgroundColor:[@"#3d72fe" colorValue]];
     }
     return _todayBtn;
@@ -101,7 +101,7 @@
     
     self.view.backgroundColor = Back_Color;
     
-    // 
+    // 添加子视图
     [self createSubviews];
     
     
@@ -136,6 +136,7 @@
     
     [backView3 mas_makeConstraints:^(MASConstraintMaker *make) {
         make.top.mas_equalTo(self.backView2.mas_bottom).offset(1);
+        make.left.mas_equalTo(self.view.mas_left);
         make.width.mas_equalTo(self.backView2.mas_width);
         make.height.mas_equalTo(self.backView2.mas_height);
     }];
@@ -153,8 +154,46 @@
         make.height.mas_equalTo(backView3.mas_height);
     }];
     
+    UIButton *button = [UIButton buttonWithType:UIButtonTypeCustom];
+    [button setTitle:@"取消" forState:UIControlStateNormal];
+    [button setTitleColor:[UIColor whiteColor] forState:UIControlStateNormal];
+    [button setBackgroundColor:[@"#d4d9e4" colorValue]];
+    button.tag = 10;
+    [button addTarget:self action:@selector(onBtnClick:) forControlEvents:UIControlEventTouchUpInside];
+    [self.view addSubview:button];
+    [button mas_makeConstraints:^(MASConstraintMaker *make) {
+        make.left.mas_equalTo(self.view.mas_left);
+        make.width.mas_equalTo(kScreenWidth/2.0);
+        make.height.mas_equalTo(60);
+        make.bottom.mas_equalTo(self.view.mas_bottom);
+    }];
     
+    UIButton *button1 = [UIButton buttonWithType:UIButtonTypeCustom];
+    [button1 setTitle:@"确认预约" forState:UIControlStateNormal];
+    [button1 setTitleColor:[UIColor whiteColor] forState:UIControlStateNormal];
+    [button1 setBackgroundColor:[@"#3d72fe" colorValue]];
+    button1.tag = 11;
+    [button1 addTarget:self action:@selector(onBtnClick:) forControlEvents:UIControlEventTouchUpInside];
+    [self.view addSubview:button1];
+    [button1 mas_makeConstraints:^(MASConstraintMaker *make) {
+        make.left.mas_equalTo(self.view.mas_left).offset(kScreenWidth/2.0);
+        make.width.mas_equalTo(kScreenWidth/2.0);
+        make.height.mas_equalTo(60);
+        make.bottom.mas_equalTo(self.view.mas_bottom);
+    }];
     
+}
+
+
+#pragma mark -- 取消或确定预约
+-(void)onBtnClick:(UIButton *)sender {
+    if (sender.tag == 10) {
+        // 取消
+        [self.navigationController popViewControllerAnimated:YES];
+    }else {
+        // 确定预约
+        
+    }
 }
 
 

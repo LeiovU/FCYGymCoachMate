@@ -65,6 +65,9 @@
     style.scrollLineColor = [@"#3d72fe" colorValue];
     style.scrollLineHeight = 2;
     style.titleMargin = 0;  // 标题的间距
+    style.selectedTitleColor = [@"#3d72fe" colorValue];
+    
+    
     
     
     
