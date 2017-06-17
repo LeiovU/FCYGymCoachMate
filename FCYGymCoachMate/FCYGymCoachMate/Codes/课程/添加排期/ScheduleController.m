@@ -9,6 +9,8 @@
 #import "ScheduleController.h"
 #import "ASWeekSelectorView.h"
 
+#import "CYContactViewController.h"
+
 @interface ScheduleController () <ASWeekSelectorViewDelegate,UITextFieldDelegate>
 
 @property (nonatomic,strong) UIView *backView1;
@@ -89,6 +91,7 @@
         [_todayBtn setImageEdgeInsets:UIEdgeInsetsMake(5, 12, 30, 10)];
         [_todayBtn setTitleEdgeInsets:UIEdgeInsetsMake(30, -_todayBtn.imageView.frame.size.width-3, 0, 0)];
         [_todayBtn setBackgroundColor:[@"#3d72fe" colorValue]];
+        _todayBtn.titleLabel.font = [UIFont systemFontOfSize:14];
     }
     return _todayBtn;
 }
@@ -129,6 +132,19 @@
         make.width.mas_equalTo(width);
         make.height.mas_equalTo(self.backView2.mas_height);
     }];
+    
+    UIButton *memberBtn = [UIButton buttonWithType:UIButtonTypeCustom];
+    [memberBtn setImage:[UIImage imageNamed:@"yhm_03"] forState:UIControlStateNormal];
+    [memberBtn addTarget:self action:@selector(choseMemberClick) forControlEvents:UIControlEventTouchUpInside];
+    [_backView2 addSubview:memberBtn];
+    [memberBtn mas_makeConstraints:^(MASConstraintMaker *make) {
+        make.left.mas_equalTo(self.searchTextField.mas_right);
+        make.right.mas_equalTo(self.backView2.mas_right);
+        make.top.mas_equalTo(self.backView2.mas_top);
+        make.height.mas_equalTo(self.backView2.mas_height);
+    }];
+    
+    
     
     UIView *backView3 = [[UIView alloc]init];
     backView3.backgroundColor = [UIColor whiteColor];
@@ -184,6 +200,12 @@
     
 }
 
+#pragma mark -- 选择会员
+-(void)choseMemberClick {
+    // 选择会员
+    CYContactViewController *contactVC = [[CYContactViewController alloc]init];
+    [self.navigationController pushViewController:contactVC animated:YES];
+}
 
 #pragma mark -- 取消或确定预约
 -(void)onBtnClick:(UIButton *)sender {

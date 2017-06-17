@@ -8,7 +8,10 @@
 
 #import "SetRestController.h"
 
-@interface SetRestController ()
+@interface SetRestController () {
+    NSDate *startDateTime;
+    NSDate *endDateTime;
+}
 
 @property (nonatomic,strong) UIView *contentView;
 @property (nonatomic,strong) UIScrollView *scroll;
@@ -33,7 +36,7 @@
 -(UIButton *)startDate {
     if (!_startDate) {
         _startDate = [UIButton buttonWithType:UIButtonTypeCustom];
-        [_startDate setTitle:[self getStringFromToday] forState:UIControlStateNormal];
+        [_startDate setTitle:[self getStringFromDate:[NSDate date]] forState:UIControlStateNormal];
         [_startDate setTitleColor:Font_Mid_Color forState:UIControlStateNormal];
         _startDate.titleLabel.font = [UIFont systemFontOfSize:14];
         _startDate.contentHorizontalAlignment = UIControlContentHorizontalAlignmentRight; //文字居右
@@ -109,28 +112,158 @@
     [self.contentView addSubview:back3];
     
     UILabel *label3 = [[UILabel alloc]initWithFrame:CGRectMake(0, 0, kScreenWidth/4.0, 50)];
-    label3.text = @" 开始日期";
+    label3.text = @" 结束时间";
     [back3 addSubview:label3];
     
     [back3 addSubview:self.endTime];
     self.endTime.frame = CGRectMake(kScreenWidth/4.0*3-10, 0, kScreenWidth/4.0, 50);
     
+    NSArray *arr = @[@"取消",@"添加"];
+    for (int i = 0; i<arr.count; i++) {
+        UIButton *button = [UIButton buttonWithType:UIButtonTypeCustom];
+        [button setTitle:arr[i] forState:UIControlStateNormal];
+        [button setTitleColor:[UIColor whiteColor] forState:UIControlStateNormal];
+        if (i == 0) {
+            [button setBackgroundColor:[@"#d4d9e4" colorValue]];
+        }else {
+            [button setBackgroundColor:[@"#3d72fe" colorValue]];
+        }
+        button.tag = 10+i;
+        [button addTarget:self action:@selector(onBtnClick:) forControlEvents:UIControlEventTouchUpInside];
+        [self.contentView addSubview:button];
+        [button mas_makeConstraints:^(MASConstraintMaker *make) {
+            make.left.mas_equalTo(self.view.mas_left).offset(kScreenWidth/2.0*i);
+            make.width.mas_equalTo(kScreenWidth/2.0);
+            make.height.mas_equalTo(60);
+            make.bottom.mas_equalTo(self.view.mas_bottom);
+        }];
+    }
+    
+}
+
+
+#pragma mark -- 取消或添加
+-(void)onBtnClick:(UIButton *)sender {
+    if (sender.tag == 10) {
+        // 取消
+        [self.navigationController popViewControllerAnimated:YES];
+    }else {
+        // 添加
+        
+    }
 }
 
 
 #pragma mark -- 弹出选择框
 -(void)showPickerClick:(UIButton *)sender {
-    
+    if (sender.tag == 1) {
+        ZJDatePickerStyle *style = [ZJDatePickerStyle new];
+        style.locale = [NSLocale localeWithLocaleIdentifier:@"GTM+8"];
+        [ZJUsefulPickerView showDatePickerWithToolBarText:@"" withStyle:style withCancelHandler:^{
+            NSLog(@"取消");
+        } withDoneHandler:^(NSDate *selectedDate) {
+            NSLog(@"%@",selectedDate);
+            [_startDate setTitle:[self getStringFromDate:selectedDate] forState:UIControlStateNormal];
+        }];
+    }else if (sender.tag == 2) {
+        ZJDatePickerStyle *style = [ZJDatePickerStyle new];
+        style.datePickerMode = UIDatePickerModeTime;
+        style.locale = [NSLocale localeWithLocaleIdentifier:@"GTM+8"];
+        [ZJUsefulPickerView showDatePickerWithToolBarText:@"" withStyle:style withCancelHandler:^{
+            NSLog(@"取消");
+        } withDoneHandler:^(NSDate *selectedDate) {
+            NSLog(@"%@",selectedDate);
+            NSDateFormatter *formatter = [[NSDateFormatter alloc]init];
+            formatter.dateFormat = @"HH:mm";
+            NSString *dateStr = [formatter stringFromDate:selectedDate];
+            
+            
+            startDateTime = selectedDate;
+            
+            if (endDateTime) {
+                int result = [self compareDate:endDateTime withAnotherDate:startDateTime];
+                if (result == 1) {
+                    [CYProgressHUD showMessage:@"开始时间不对哦!" andAutoHideAfterTime:1.5];
+                }else {
+                    [_startTime setTitle:dateStr forState:UIControlStateNormal];
+                }
+            }else {
+                [_startTime setTitle:dateStr forState:UIControlStateNormal];
+            }
+            
+            
+            
+        }];
+    }else {
+        ZJDatePickerStyle *style = [ZJDatePickerStyle new];
+        style.datePickerMode = UIDatePickerModeTime;
+        style.locale = [NSLocale localeWithLocaleIdentifier:@"GTM+8"];
+        [ZJUsefulPickerView showDatePickerWithToolBarText:@"" withStyle:style withCancelHandler:^{
+            NSLog(@"取消");
+        } withDoneHandler:^(NSDate *selectedDate) {
+            NSLog(@"%@",selectedDate);
+            NSDateFormatter *formatter = [[NSDateFormatter alloc]init];
+            formatter.dateFormat = @"HH:mm";
+            NSString *dateStr = [formatter stringFromDate:selectedDate];
+            
+            endDateTime = selectedDate;
+            
+           int result = [self compareDate:startDateTime withAnotherDate:endDateTime];
+            if (result == -1) {
+                [CYProgressHUD showMessage:@"结束时间不对哦!" andAutoHideAfterTime:1.5];
+            }else {
+                [_endTime setTitle:dateStr forState:UIControlStateNormal];
+            }
+            
+            
+        }];
+    }
 }
 
 
--(NSString *)getStringFromToday {
+-(NSString *)getStringFromDate:(NSDate *)date {
     NSDateFormatter *formatter = [[NSDateFormatter alloc]init];
     [formatter setDateFormat:@"yyyy-MM-dd"];
-    NSDate *currentDate = [NSDate date];
-    NSString *currentDateString = [formatter stringFromDate:currentDate];
+    NSString *currentDateString = [formatter stringFromDate:date];
     
     return currentDateString;
+}
+
+-(int)compareDate:(NSDate *)date withAnotherDate:(NSDate *)anotherDate {
+    NSDateFormatter *df = [[NSDateFormatter alloc]init];
+    [df setDateFormat:@"yyyy-MM-dd HH:mm"];
+    
+    NSString *str1 = [df stringFromDate:date];
+    NSString *str2 = [df stringFromDate:anotherDate];
+    
+    NSDate *dt1 = [[NSDate alloc]init];
+    NSDate *dt2 = [[NSDate alloc]init];
+    
+    dt1 = [df dateFromString:str1];
+    dt2 = [df dateFromString:str2];
+    
+    NSComparisonResult result = [dt1 compare:dt2];
+    int ci;
+    switch (result)
+    {
+            //date02比date01大
+        case NSOrderedAscending:
+            ci = 1;
+            break;
+            //date02比date01小
+        case NSOrderedDescending:
+            ci = -1;
+            break;
+            //date02=date01
+        case NSOrderedSame:
+            ci = 0;
+            break;
+        default:
+            NSLog(@"erorr dates %@, %@", dt2, dt1);
+            break;
+    }
+    return ci;
+    
 }
 
 

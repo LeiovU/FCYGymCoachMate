@@ -26,7 +26,7 @@
     // 数据源
     [self prepareData];
     
-    // 添加子试图
+    // 添加子视图
     [self addViews];
     
     

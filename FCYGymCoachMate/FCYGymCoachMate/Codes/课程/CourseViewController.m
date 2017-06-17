@@ -45,9 +45,8 @@
 #import "CoursePlanController.h"  // 课程安排
 #import "AddScheduleController.h" // 添加排期
 
-@interface CourseViewController () <ASWeekSelectorViewDelegate>
+@interface CourseViewController () <ASWeekSelectorViewDelegate,TouchEnventDelegate>
 {
-    UIButton *titleBtn;
     UIButton *dateBtn;
     
     NSDate  *monthDate;
@@ -55,6 +54,9 @@
     CGRect  calendarRect;
     
 }
+
+@property (nonatomic,strong) UIButton *titleBtn;  // 导航栏的titleview
+@property (nonatomic,strong) ZJUsefulPickerView *pickerView;
 
 @property (nonatomic,strong) GFCalendarView *calendarView;
 @property (nonatomic,strong) UIView *backView;
@@ -75,10 +77,12 @@
     
     
     // 标题
-    [self addTitleView];
+    self.navigationItem.titleView = self.titleBtn;
+    self.automaticallyAdjustsScrollViewInsets = NO;
     
     // 左边按钮
-    [self createNavigationItemsWithTitle:@"我的主页" andWithImage:nil andWithType:YES andWithTag:HomePage_Tag];
+//    [self createNavigationItemsWithTitle:nil andWithImage:nil andWithType:YES andWithTag:HomePage_Tag];
+    self.navigationItem.leftBarButtonItem = nil;
     
     // 添加子试图
     [self addSubviews];
@@ -148,7 +152,7 @@
 }
 -(UIView *)backView2 {
     if (!_backView2) {
-        _backView2 = [[UIView alloc]initWithFrame:CGRectMake(0, 124, kScreenWidth, WeekDay_H)];
+        _backView2 = [[UIView alloc]initWithFrame:CGRectMake(0, 64, kScreenWidth, WeekDay_H)];
         _backView2.backgroundColor = [UIColor whiteColor] ;
     }
     return _backView2;
@@ -167,72 +171,88 @@
 
 -(SlideFormScrollView *)scrollerView {
     if (!_scrollerView) {
-        _scrollerView = [[SlideFormScrollView alloc]initWithFrame:CGRectMake(0, 180, kScreenWidth, kScreenHeight-180-49)];
+        _scrollerView = [[SlideFormScrollView alloc]initWithFrame:CGRectMake(0, WeekDay_H+64+30, kScreenWidth, kScreenHeight-WeekDay_H-64-30)];
     }
     return _scrollerView;
 }
 
-
-#pragma mark -- 标题 view
--(void)addTitleView {
-     UIView *titleView = [[UIView alloc]initWithFrame:CGRectMake(0, 0, 100, 40)];
-    titleView.backgroundColor = [UIColor clearColor];
-    
-    titleBtn  = [UIButton buttonWithType:UIButtonTypeCustom];
-    titleBtn.frame = CGRectMake(0, 0, 100, 40);
-    [titleBtn setTitle:@"全部课程" forState:UIControlStateNormal];
-    [titleBtn setTitleColor:[UIColor whiteColor] forState:UIControlStateNormal];
-    titleBtn.titleLabel.font = [UIFont systemFontOfSize:20];
-    [titleBtn setBackgroundColor:[UIColor clearColor]];
-    [titleBtn setImage:[UIImage imageNamed:@""] forState:UIControlStateNormal];
-    [titleBtn setTitleEdgeInsets:UIEdgeInsetsMake(5, 0, 5, 30)];
-    [titleBtn addTarget:self action:@selector(choseGymClick) forControlEvents:UIControlEventTouchUpInside];
-    titleBtn.titleLabel.adjustsFontSizeToFitWidth = YES;
-    [titleView addSubview:titleBtn];
-    
-    self.navigationItem.titleView = titleView;
-    
+-(UIButton *)titleBtn {
+    if (!_titleBtn) {
+        _titleBtn  = [UIButton buttonWithType:UIButtonTypeCustom];
+        _titleBtn.frame = CGRectMake(0, 0, 100, 40);
+        [_titleBtn setTitle:@"健身房1" forState:UIControlStateNormal];
+        [_titleBtn setTitleColor:[UIColor whiteColor] forState:UIControlStateNormal];
+        _titleBtn.titleLabel.font = [UIFont systemFontOfSize:18];
+        [_titleBtn setBackgroundColor:[UIColor clearColor]];
+        [_titleBtn setImage:[UIImage imageNamed:@"sj_05"] forState:UIControlStateNormal];
+        [_titleBtn setTitleEdgeInsets:UIEdgeInsetsMake(0, 0, 0, 20)];
+        [_titleBtn setImageEdgeInsets:UIEdgeInsetsMake(_titleBtn.frame.size.height/4.0*2, 80, 0, 0)];
+        [_titleBtn addTarget:self action:@selector(choseGymClick:) forControlEvents:UIControlEventTouchUpInside];
+        _titleBtn.titleLabel.adjustsFontSizeToFitWidth = YES;
+        
+    }
+    return _titleBtn;
 }
 
 #pragma mark -- 标题按钮事件
--(void)choseGymClick {
+-(void)choseGymClick:(UIButton *)sender {
+    sender.selected  = !sender.selected;
+    sender.imageView.transform = sender.selected ? CGAffineTransformMakeRotation(M_PI) : CGAffineTransformMakeRotation(0);
     
-    [ZJUsefulPickerView showSingleColPickerWithToolBarText:@"" withData:@[@"健身房1",@"健身房2",@"健身房3"] withDefaultIndex:1 withCancelHandler:^{
+     self.pickerView = [ZJUsefulPickerView showSingleColPickerWithToolBarText:@"" withData:@[@"健身房1",@"健身房2",@"健身房3"] withDefaultIndex:1 withCancelHandler:^{
         NSLog(@"取消");
+        
+        sender.imageView.transform = CGAffineTransformMakeRotation(0);
+        sender.selected = NO;
     } withDoneHandler:^(NSInteger selectedIndex, NSString *selectedValue) {
-        [titleBtn setTitle:selectedValue forState:UIControlStateNormal];
+        [_titleBtn setTitle:selectedValue forState:UIControlStateNormal];
+        
+        sender.imageView.transform = CGAffineTransformMakeRotation(0);
+        sender.selected = NO;
     }];
-    
-    
-    
+    self.pickerView.delegate = self;
+}
+
+#pragma mark -- 点击picker空白处的代理
+-(void)touchEnventChange {
+    _titleBtn.imageView.transform = CGAffineTransformMakeRotation(0);
+    _titleBtn.selected = NO;
 }
 
 #pragma mark -- 添加子试图
 -(void)addSubviews {
     // 添加左边日期按钮
-    dateBtn = [UIButton buttonWithType:UIButtonTypeCustom];
-    dateBtn.frame = CGRectMake(0, 64, kScreenWidth/5, 40);
-    monthDate = [NSDate date];
-    [dateBtn setTitle:[NSString stringWithFormat:@"%ld-%.2ld",(long)[self year:monthDate],(long)[self month:monthDate]] forState:UIControlStateNormal];
-    [dateBtn setTitleColor:[UIColor blackColor] forState:UIControlStateNormal];
-    [dateBtn addTarget:self action:@selector(showCalenderView:) forControlEvents:UIControlEventTouchUpInside];
-    [self.view addSubview:dateBtn];
+//    dateBtn = [UIButton buttonWithType:UIButtonTypeCustom];
+//    dateBtn.frame = CGRectMake(0, 64, kScreenWidth/5, 40);
+//    monthDate = [NSDate date];
+//    [dateBtn setTitle:[NSString stringWithFormat:@"%ld-%.2ld",(long)[self year:monthDate],(long)[self month:monthDate]] forState:UIControlStateNormal];
+//    [dateBtn setTitleColor:[UIColor blackColor] forState:UIControlStateNormal];
+//    [dateBtn addTarget:self action:@selector(showCalenderView:) forControlEvents:UIControlEventTouchUpInside];
+//    [self.view addSubview:dateBtn];
     
     // 今
     UIButton *todayBtn = [UIButton buttonWithType:UIButtonTypeCustom];
-    todayBtn.frame = CGRectMake((kScreenWidth/8.0-25)/2, 10, 25, 25);
-    [todayBtn setTitle:@"今" forState:UIControlStateNormal];
-    [todayBtn setTitleColor:[UIColor lightGrayColor] forState:UIControlStateNormal];
-    todayBtn.layer.borderWidth = 1;
-    todayBtn.layer.cornerRadius = 2;
-    todayBtn.layer.masksToBounds = YES;
+    todayBtn.frame = CGRectMake(0, 0, kScreenWidth/8.0, WeekDay_H);
+    [todayBtn setTitle:@"今日" forState:UIControlStateNormal];
+    [todayBtn setImage:[UIImage imageNamed:@"rl_03"] forState:UIControlStateNormal];
+    [todayBtn setTitleColor:[UIColor whiteColor] forState:UIControlStateNormal];
     [todayBtn addTarget:self action:@selector(backTodayClick) forControlEvents:UIControlEventTouchUpInside];
-    [self.view addSubview:todayBtn];
+    todayBtn.layer.borderWidth = 0.5;
+    todayBtn.layer.borderColor = [UIColor lightGrayColor].CGColor;
+    todayBtn.titleLabel.font = [UIFont systemFontOfSize:13];
+    [todayBtn setImageEdgeInsets:UIEdgeInsetsMake(5, 12, 30, 10)];
+    [todayBtn setTitleEdgeInsets:UIEdgeInsetsMake(30, -22, 0, 0)];
+    [todayBtn setBackgroundColor:[@"#3d72fe" colorValue]];
+    
     [self.view addSubview:self.backView2];
     [self.backView2 addSubview:todayBtn];
     
     // 右边日历
     [self.backView2 addSubview:self.weekClaendar];
+    
+    UIView *view1 = [[UIView alloc]initWithFrame:CGRectMake(0, WeekDay_H+64, kScreenWidth, 30)];
+    view1.backgroundColor = Back_Color;
+    [self.view addSubview:view1];
     
     [self.view addSubview:self.scrollerView];
     

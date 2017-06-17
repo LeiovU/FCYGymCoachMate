@@ -41,6 +41,7 @@ static CGFloat const kSearchBarHeight = 40.f;
     self.tableView.tableHeaderView = self.searchBar;
     self.navigationItem.rightBarButtonItem = [[UIBarButtonItem alloc]initWithTitle:@"添加" style:UIBarButtonItemStylePlain target:self action:@selector(addContactClick)];
     
+    
     // Do any additional setup after loading the view.
 }
 
@@ -324,6 +325,9 @@ static CGFloat const kSearchBarHeight = 40.f;
         searchCtr.delegate = self;
         searchCtr.searchBar.delegate = self;
         searchCtr.searchBar.placeholder = @"搜索联系人姓名/首字母缩写";
+        // 搜索框不出现的问题，self.definesPresentationContext 这个不写
+        searchCtr.hidesNavigationBarDuringPresentation = NO;
+        
         _searchController = searchCtr;
     }
     return _searchController;

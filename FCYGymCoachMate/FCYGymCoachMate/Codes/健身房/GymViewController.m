@@ -10,6 +10,7 @@
 
 #import "UIButton+SetImgAndTitle.h"
 
+#import "CYContactViewController.h"
 #import "MemberDetailsController.h"
 #import "PrivatePlanController.h"
 #import "MeViewController.h"
@@ -253,9 +254,12 @@
         
     }else if (sender.tag == 2) {
         //会员
-        MemberDetailsController *memberVC = [[MemberDetailsController alloc]init];
+//        MemberDetailsController *memberVC = [[MemberDetailsController alloc]init];
+//        
+//        [self.navigationController pushViewController:memberVC animated:YES];
         
-        [self.navigationController pushViewController:memberVC animated:YES];
+        CYContactViewController *contactVC = [[CYContactViewController alloc]init];
+        [self.navigationController pushViewController:contactVC animated:YES];
         
     }else if (sender.tag == 3) {
         // 消息

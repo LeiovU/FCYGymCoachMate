@@ -20,6 +20,8 @@
 - (void)viewDidLoad {
     [super viewDidLoad];
     
+    self.definesPresentationContext = YES;
+    
     [self.view addSubview:self.tableView];
     
     // Do any additional setup after loading the view.
@@ -40,6 +42,15 @@
     cell.backgroundColor = [UIColor yellowColor];
     return cell;
 }
+
+-(void)tableView:(UITableView *)tableView didSelectRowAtIndexPath:(NSIndexPath *)indexPath {
+    
+    NSLog(@"11111");
+    [self dismissViewControllerAnimated:YES completion:nil];
+    
+    
+}
+
 
 
 -(void)setData:(NSArray<CYContact *> *)data {
