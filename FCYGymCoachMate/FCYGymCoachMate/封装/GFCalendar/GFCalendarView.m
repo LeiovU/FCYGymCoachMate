@@ -139,6 +139,7 @@
         _previousButton = [UIButton buttonWithType:UIButtonTypeCustom];
         [_previousButton setBackgroundImage:[UIImage imageNamed:@"sj_07"] forState:UIControlStateNormal];
         [_previousButton addTarget:self action:@selector(previousButtonClick) forControlEvents:UIControlEventTouchUpInside];
+        _previousButton.adjustsImageWhenHighlighted = NO; // button 高亮状态消失
         
     }
     return _previousButton;
@@ -153,6 +154,7 @@
         _nextButton = [UIButton buttonWithType:UIButtonTypeCustom];
         [_nextButton setBackgroundImage:[UIImage imageNamed:@"sj_08"] forState:UIControlStateNormal];
         [_nextButton addTarget:self action:@selector(nextButtonClick) forControlEvents:UIControlEventTouchUpInside];
+        _nextButton.adjustsImageWhenHighlighted = NO;  // button 高亮状态消失
     }
     return _nextButton;
 }

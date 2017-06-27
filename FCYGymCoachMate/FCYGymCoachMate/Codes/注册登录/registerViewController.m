@@ -41,6 +41,13 @@
 {    self.navigationItem.title = @"注册";
     self.navigationItem.leftBarButtonItem = [[UIBarButtonItem alloc] initWithTitle:@"" style:UIBarButtonItemStylePlain target:nil action:nil];
     self.navigationItem.rightBarButtonItem = [[UIBarButtonItem alloc] initWithTitle:@"确定" style:UIBarButtonItemStyleDone target:self action:@selector(submitBarItem)];
+    
+    
+    UIImageView *imageV = [[UIImageView alloc]initWithImage:[UIImage imageNamed:@"dlbj"]];
+    imageV.frame = self.view.bounds;
+    [self.view addSubview:imageV];
+    
+    
     [self.phoneNumTF becomeFirstResponder];
     [self.view addSubview:_phoneNumTF];
     [self.view addSubview:self.passwordTF];

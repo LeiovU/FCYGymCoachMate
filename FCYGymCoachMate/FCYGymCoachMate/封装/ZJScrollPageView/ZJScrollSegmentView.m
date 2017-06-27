@@ -39,6 +39,8 @@
 // 响应标题点击
 @property (copy, nonatomic) TitleBtnOnClickBlock titleBtnOnClick;
 
+@property (nonatomic,assign) BOOL isDivide;   // 2017-06-19
+
 @end
 
 @implementation ZJScrollSegmentView
@@ -57,6 +59,7 @@ static CGFloat const contentSizeXOff = 20.0;
         _currentIndex = 0;
         _oldIndex = 0;
         _currentWidth = frame.size.width;
+        _isDivide = self.segmentStyle.scrollLineWidthIsDivide;
         
         if (!self.segmentStyle.isScrollTitle) { // 不能滚动的时候就不要把缩放和遮盖或者滚动条同时使用, 否则显示效果不好
             
@@ -67,6 +70,7 @@ static CGFloat const contentSizeXOff = 20.0;
             self.segmentStyle.scaleTitle = NO;
             self.segmentStyle.showCover = NO;
             self.segmentStyle.gradualChangeTitleColor = NO;
+            
         }
         
         // 设置了frame之后可以直接设置其他的控件的frame了, 不需要在layoutsubView()里面设置
@@ -155,10 +159,14 @@ static CGFloat const contentSizeXOff = 20.0;
         UITapGestureRecognizer *tapGes = [[UITapGestureRecognizer alloc] initWithTarget:self action:@selector(titleLabelOnClick:)];
         [titleView addGestureRecognizer:tapGes];
         
-//        CGFloat titleViewWidth = [titleView titleViewWidth];
-        
         //  修改 2017 titleView宽度平分屏幕
-        [self.titleWidths addObject:@(self.frame.size.width/(self.titles.count))];
+        if (!_isDivide) {
+            CGFloat titleViewWidth = [titleView titleViewWidth];
+            [self.titleWidths addObject:@(titleViewWidth)];
+        }else {
+            [self.titleWidths addObject:@(self.frame.size.width/(self.titles.count))];
+        }
+        
         
         [self.titleViews addObject:titleView];
         [self.scrollView addSubview:titleView];

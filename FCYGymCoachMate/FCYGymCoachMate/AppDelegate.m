@@ -75,7 +75,7 @@
     
     if ([[NSUserDefaults standardUserDefaults] boolForKey:isLogin]) {
         landViewController *landVC = [[landViewController alloc]init];
-        self.window.rootViewController = [[BaseNavigationController alloc]initWithRootViewController:landVC];
+        [self.window.rootViewController presentViewController:landVC animated:YES completion:nil];
     }
     
     

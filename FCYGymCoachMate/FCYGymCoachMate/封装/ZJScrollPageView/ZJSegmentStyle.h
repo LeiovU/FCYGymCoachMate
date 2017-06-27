@@ -90,7 +90,8 @@ typedef NS_OPTIONS(NSInteger, SegmentViewComponent) {
 /** 标题中图片的位置 */
 @property (assign, nonatomic) TitleImagePosition imagePosition;
 
-@property (nonatomic,assign) CGFloat scrollLineWidth;   // 左右滑动的横线长度
+
+@property (assign, nonatomic) BOOL scrollLineWidthIsDivide;
 
 
 /**未使用*/

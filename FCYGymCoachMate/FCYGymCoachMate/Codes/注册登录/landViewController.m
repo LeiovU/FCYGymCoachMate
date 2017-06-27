@@ -18,7 +18,25 @@
 
 #define LibPATHS [NSSearchPathForDirectoriesInDomains(NSLibraryDirectory, NSUserDomainMask, YES) lastObject]
 
-@interface landViewController ()<UITextFieldDelegate>
+@interface landViewController ()<UITextFieldDelegate,UIScrollViewDelegate>
+
+@property (nonatomic,strong) UIButton *loginBtn;   // 登录
+@property (nonatomic,strong) UIButton *registerBtn;  // 注册
+@property (nonatomic,strong) UILabel *moveLab;
+
+
+@property (nonatomic,strong) UIScrollView *scroll;
+@property (nonatomic,strong) UIImageView *logoImg;
+
+@property (nonatomic,strong) UIButton *accountBtn;  // 账号密码
+@property (nonatomic,strong) UIButton *fastLand;   // 快速登录
+
+
+@property (nonatomic,strong) UITextField *phoneField;
+@property (nonatomic,strong) UITextField *passwordField;
+@property (nonatomic,strong) UIButton *landBtn;
+@property (nonatomic,strong) UILabel *moveLine;
+
 
 @end
 
@@ -27,80 +45,404 @@
     NSString  *imPassword;
 }
 
+#pragma mark -- 懒加载
+-(UILabel *)moveLab {
+    if (!_moveLab) {
+        _moveLab = [[UILabel alloc]init];
+        _moveLab.backgroundColor = [UIColor blueColor];
+    }
+    return _moveLab;
+}
+
+
+-(UIScrollView *)scroll {
+    if (!_scroll) {
+        UIScrollView *scrollView = [[UIScrollView alloc] init];
+        scrollView.contentSize = CGSizeMake(2*kScreenWidth, kScreenHeight-60);
+//        scrollView.showsHorizontalScrollIndicator = NO;
+        scrollView.scrollsToTop = YES;
+        scrollView.scrollEnabled = YES;
+        scrollView.bounces = YES;
+        scrollView.pagingEnabled = YES;
+        scrollView.delegate = self;
+        scrollView.backgroundColor = [UIColor clearColor];
+        
+        UITapGestureRecognizer *tapGR = [[UITapGestureRecognizer alloc]initWithTarget:scrollView action:@selector(TapClick:)];
+        tapGR.numberOfTapsRequired = 1; //单击
+        [scrollView addGestureRecognizer:tapGR];
+        
+        
+        _scroll = scrollView;
+    }
+    return _scroll;
+}
+
+-(UIImageView *)logoImg {
+    if (!_logoImg) {
+        UIImage *image = [UIImage imageNamed:@"logo"];
+        UIImageView *imageV = [[UIImageView alloc]initWithImage:image];
+        _logoImg = imageV;
+    }
+    return _logoImg;
+}
+
+-(UIButton *)accountBtn {
+    if (!_accountBtn) {
+        UIButton * accountBtn = [UIButton buttonWithType:UIButtonTypeCustom];
+        [accountBtn setTitle:@"账号登陆" forState:UIControlStateNormal];
+        [accountBtn setTitleColor:[UIColor blackColor] forState:UIControlStateNormal];
+        [accountBtn addTarget:self action:@selector(accountBtnClick) forControlEvents:UIControlEventTouchUpInside];
+        _accountBtn = accountBtn;
+    }
+    return _accountBtn;
+}
+
+-(UIButton *)fastLand {
+    if (!_fastLand) {
+        UIButton * fastLand = [UIButton buttonWithType:UIButtonTypeCustom];
+        [fastLand setTitle:@"快速登录" forState:UIControlStateNormal];
+        [fastLand setTitleColor:[UIColor blackColor] forState:UIControlStateNormal];
+        fastLand.titleLabel.textAlignment = NSTextAlignmentCenter;
+        [fastLand setBackgroundColor:[UIColor clearColor]];
+        [fastLand addTarget:self action:@selector(fastLandClick) forControlEvents:UIControlEventTouchUpInside];
+        _fastLand = fastLand;
+    }
+    return _fastLand;
+}
+
+
+-(UITextField *)phoneField {
+    if (!_phoneField) {
+        UITextField *  phoneField = [[UITextField alloc] init];
+        phoneField.placeholder = @" 请输入您的用户名";
+        phoneField.font = [UIFont systemFontOfSize:14];
+        phoneField.secureTextEntry = YES;
+        phoneField.delegate = self;
+        UILabel * phoneLabel = [[UILabel alloc] initWithFrame:CGRectMake(0, 0, 60, 30)];
+        phoneLabel.text = @"用户名";
+        phoneLabel.textAlignment = NSTextAlignmentCenter;
+        phoneField.leftView = phoneLabel;
+        phoneField.leftViewMode = UITextFieldViewModeAlways;
+        _phoneField = phoneField;
+    }
+    return _phoneField;
+}
+
+-(UITextField *)passwordField {
+    if (!_passwordField) {
+        UITextField *  passwordField = [[UITextField alloc] init];
+        passwordField.placeholder = @" 请输入密码";
+        passwordField.font = [UIFont systemFontOfSize:14];
+        passwordField.secureTextEntry = YES;
+        passwordField.delegate = self;
+        UILabel * passwordLabel = [[UILabel alloc] initWithFrame:CGRectMake(0, 0, 60, 30)];
+        passwordLabel.text = @"密   码";
+        passwordLabel.textAlignment = NSTextAlignmentCenter;
+        passwordField.leftView = passwordLabel;
+        passwordField.leftViewMode = UITextFieldViewModeAlways;
+        _passwordField = passwordField;
+    }
+    return _passwordField;
+}
+
+-(UIButton *)landBtn {
+    if (!_landBtn) {
+        UIButton * landBtn = [UIButton buttonWithType:UIButtonTypeCustom];
+        landBtn.layer.cornerRadius = 5;
+        landBtn.clipsToBounds = YES;
+        [landBtn setTitle:@"登陆" forState:UIControlStateNormal];
+//        landBtn.backgroundColor = [UIColor colorWithRed:40/255.0f green:158/255.0f blue:239/255.0f alpha:1.0f];
+        [landBtn setBackgroundImage:[UIImage imageNamed:@"dlan"] forState:UIControlStateNormal];
+        [landBtn addTarget:self action:@selector(landBtnClick) forControlEvents:UIControlEventTouchUpInside];
+        landBtn.titleLabel.textAlignment = NSTextAlignmentCenter;
+        _landBtn = landBtn;
+    }
+    return _landBtn;
+}
+
+-(UILabel *)moveLine {
+    if (!_moveLine) {
+        _moveLine = [[UILabel alloc]init];
+        _moveLine.backgroundColor = [UIColor blueColor];
+    }
+    return _moveLine;
+}
+
+
+
 - (void)viewDidLoad {
     [super viewDidLoad];
-    self.navigationItem.title = @"登陆";
+
     [self setupUI];
+    
+    [[NSNotificationCenter defaultCenter] addObserver:self selector:@selector(keyboardWillShow:) name:UIKeyboardWillShowNotification object:nil];
+    [[NSNotificationCenter defaultCenter]addObserver:self selector:@selector(keyboardWillHide:) name:UIKeyboardWillHideNotification object:nil];
+    
 }
 - (void)setupUI{
     
+    UIImageView *imageV = [[UIImageView alloc]initWithImage:[UIImage imageNamed:@"dlbj"]];
+    imageV.frame = self.view.bounds;
+    [self.view addSubview:imageV];
     
-   UITextField *  phoneField = [[UITextField alloc] initWithFrame:CGRectMake(20, 144 , SCREEN_WIDTH - 40 , 50)];
-    phoneField.placeholder = @"手机号";
-    phoneField.borderStyle = UITextBorderStyleRoundedRect;
-    phoneField.secureTextEntry = YES;
-    phoneField.delegate = self;
-    UILabel * phoneLabel = [[UILabel alloc] initWithFrame:CGRectMake(0, 0, 50, 50)];
-    phoneLabel.text = @"账号";
-    phoneLabel.textAlignment = NSTextAlignmentRight;
-    phoneField.leftView = phoneLabel;
-    phoneField.leftViewMode = UITextFieldViewModeAlways;
-    [self.view addSubview:phoneField];
+    UIButton * loginBtn = [UIButton buttonWithType:UIButtonTypeCustom];
+    [loginBtn setTitle:@"登陆" forState:UIControlStateNormal];
+    [loginBtn setTitleColor:[UIColor blackColor] forState:UIControlStateNormal];
+    [loginBtn setBackgroundColor:[UIColor clearColor]];
+    [loginBtn addTarget:self action:@selector(loginBtnClick) forControlEvents:UIControlEventTouchUpInside];
+    loginBtn.titleLabel.textAlignment = NSTextAlignmentCenter;
+    _loginBtn = loginBtn;
+    [self.view addSubview:_loginBtn];
     
+    UIImage *image = [UIImage imageNamed:@"logo"];
+    CGFloat leftMargin = (kScreenWidth-image.size.width)/2.0;
     
-   UITextField *  passwordField = [[UITextField alloc] initWithFrame:CGRectMake(20, 200 , SCREEN_WIDTH - 40 , 50)];
-    passwordField.placeholder = @"请输入密码";
-    passwordField.borderStyle = UITextBorderStyleRoundedRect;
-    passwordField.secureTextEntry = YES;
-    passwordField.delegate = self;
-    UILabel * passwordLabel = [[UILabel alloc] initWithFrame:CGRectMake(0, 0, 50, 50)];
-    passwordLabel.text = @"密码";
-    passwordLabel.textAlignment = NSTextAlignmentRight;
-    passwordField.leftView = passwordLabel;
-    passwordField.leftViewMode = UITextFieldViewModeAlways;
-    [self.view addSubview:passwordField];
+    [_loginBtn mas_makeConstraints:^(MASConstraintMaker *make) {
+        make.top.equalTo(self.view.mas_top).offset(40);
+        make.left.equalTo(self.view.mas_left).offset(leftMargin*2/3.0);
+        make.width.mas_equalTo(@60);
+        make.height.mas_equalTo(@50);
+    }];
     
-    
-    UIButton * forgetBtn = [[UIButton alloc] initWithFrame:CGRectMake(SCREEN_WIDTH - 100, 260,80, 30)];
-    [forgetBtn setTitle:@"忘记密码" forState:UIControlStateNormal];
-    [forgetBtn setTitleColor:[UIColor blueColor] forState:UIControlStateNormal];
-    [forgetBtn addTarget:self action:@selector(forgetBtnClick) forControlEvents:UIControlEventTouchUpInside];
-    [self.view addSubview:forgetBtn];
-    
-    UIButton * landBtn = [[UIButton alloc] initWithFrame:CGRectMake(20, 370, SCREEN_WIDTH - 40, 50)];
-    landBtn.layer.cornerRadius = 5;
-    landBtn.clipsToBounds = YES;
-    [landBtn setTitle:@"登陆" forState:UIControlStateNormal];
-    landBtn.backgroundColor = [UIColor colorWithRed:40/255.0f green:158/255.0f blue:239/255.0f alpha:1.0f];
-    [landBtn addTarget:self action:@selector(landBtnClick) forControlEvents:UIControlEventTouchUpInside];
-    landBtn.titleLabel.textAlignment = NSTextAlignmentCenter;
-    [self.view addSubview:landBtn];
-    
-    
-    UIButton * registerBtn = [[UIButton alloc] initWithFrame:CGRectMake(20, 440, SCREEN_WIDTH - 40, 50)];
-    registerBtn.layer.cornerRadius = 5;
-    registerBtn.clipsToBounds = YES;
+    UIButton * registerBtn = [UIButton buttonWithType:UIButtonTypeCustom];
     [registerBtn setTitle:@"注册" forState:UIControlStateNormal];
     [registerBtn setTitleColor:[UIColor blackColor] forState:UIControlStateNormal];
+    [registerBtn setBackgroundColor:[UIColor clearColor]];
+    [registerBtn addTarget:self action:@selector(registerBtnClick) forControlEvents:UIControlEventTouchUpInside];
     registerBtn.titleLabel.textAlignment = NSTextAlignmentCenter;
-    [registerBtn addTarget:self action:@selector(registerClick) forControlEvents:UIControlEventTouchUpInside];
-    registerBtn.layer.borderWidth = 0.2;
-    [self.view addSubview:registerBtn];
+    _registerBtn = registerBtn;
+    [self.view addSubview:_registerBtn];
+    
+    [_registerBtn mas_makeConstraints:^(MASConstraintMaker *make) {
+        make.top.equalTo(self.loginBtn.mas_top);
+        make.right.equalTo(self.view.mas_right).offset(-leftMargin/3.0*2);
+        make.width.mas_equalTo(@60);
+        make.height.mas_equalTo(@50);
+    }];
+    
+    _moveLab = [[UILabel alloc]init];
+    _moveLab.backgroundColor = [UIColor blueColor];
+    [self.view addSubview:_moveLab];
+    
+    [_moveLab mas_makeConstraints:^(MASConstraintMaker *make) {
+        make.top.equalTo(_loginBtn.mas_bottom);
+        make.centerX.equalTo(_loginBtn);
+        make.width.mas_equalTo(_loginBtn);
+        make.height.mas_equalTo(@2);
+    }];
+    
+    [self.view addSubview:self.scroll];
+    [self.scroll mas_makeConstraints:^(MASConstraintMaker *make) {
+        make.top.equalTo(self.loginBtn.mas_bottom).offset(1);
+        make.left.equalTo(self.view.mas_left);
+        make.right.equalTo(self.view.mas_right);
+        make.bottom.equalTo(self.view.mas_bottom);
+    }];
+    
+    [self.scroll addSubview:self.logoImg];
+    [self.logoImg mas_makeConstraints:^(MASConstraintMaker *make) {
+        make.left.equalTo(self.scroll.mas_left).offset(leftMargin);
+        make.top.equalTo(self.scroll.mas_top).offset(20);
+        make.width.mas_equalTo(kScreenWidth-2*leftMargin);
+        make.height.mas_equalTo(image.size.height);
+    }];
     
    
+    [self.scroll addSubview:self.accountBtn];
+    [self.accountBtn mas_makeConstraints:^(MASConstraintMaker *make) {
+        make.top.equalTo(self.logoImg.mas_bottom).offset(20);
+        make.left.equalTo(self.scroll.mas_left).offset(leftMargin/2.0);
+        make.width.mas_equalTo(@(self.logoImg.frame.size.width/2.0));
+        make.height.mas_equalTo(@40);
+    }];
+    
+    [self.scroll addSubview:self.fastLand];
+    [self.fastLand mas_makeConstraints:^(MASConstraintMaker *make) {
+        make.top.mas_equalTo(self.logoImg.mas_bottom).offset(20);
+        make.right.mas_equalTo(self.scroll.mas_left).offset(kScreenWidth-leftMargin/2.0);
+        make.width.mas_equalTo(self.logoImg.frame.size.width/2.0);
+        make.height.mas_equalTo(40);
+    }];
+    
+    [self.scroll addSubview:self.moveLine];
+    [self.moveLine mas_makeConstraints:^(MASConstraintMaker *make) {
+        make.top.equalTo(self.accountBtn.mas_bottom);
+        make.left.equalTo(self.accountBtn);
+        make.width.mas_equalTo(self.accountBtn);
+        make.height.mas_equalTo(@2);
+    }];
+    
+   
+    [self.scroll addSubview:self.phoneField];
+    [self.phoneField mas_makeConstraints:^(MASConstraintMaker *make) {
+        make.top.equalTo(self.accountBtn.mas_bottom).offset(20);
+        make.left.equalTo(self.scroll).offset(leftMargin/3.0);
+        make.right.equalTo(self.scroll.mas_left).offset(kScreenWidth-leftMargin/3.0);
+        make.height.mas_equalTo(@30);
+    }];
+    
+    UIView *line1 = [[UIView alloc]init];
+    line1.backgroundColor = Font_Week_Color;
+    [self.scroll addSubview:line1];
+    [line1 mas_makeConstraints:^(MASConstraintMaker *make) {
+        make.top.equalTo(self.phoneField.mas_bottom);
+        make.left.equalTo(self.phoneField);
+        make.right.equalTo(self.phoneField);
+        make.height.mas_equalTo(@0.5);
+    }];
+    
+    [self.scroll addSubview:self.passwordField];
+    [self.passwordField mas_makeConstraints:^(MASConstraintMaker *make) {
+        make.top.equalTo(self.phoneField.mas_bottom).offset(20);
+        make.left.equalTo(self.phoneField);
+        make.right.equalTo(self.phoneField);
+        make.height.mas_equalTo(@30);
+    }];
+    
+    UIView *line2 = [[UIView alloc]init];
+    line2.backgroundColor = Font_Week_Color;
+    [self.scroll addSubview:line2];
+    [line2 mas_makeConstraints:^(MASConstraintMaker *make) {
+        make.top.equalTo(self.passwordField.mas_bottom);
+        make.left.equalTo(self.passwordField);
+        make.right.equalTo(self.passwordField);
+        make.height.mas_equalTo(@0.5);
+    }];
+    
+    [self.scroll addSubview:self.landBtn];
+    [self.landBtn mas_makeConstraints:^(MASConstraintMaker *make) {
+        make.top.equalTo(self.passwordField.mas_bottom).offset(40);
+        make.left.equalTo(self.passwordField);
+        make.right.equalTo(self.passwordField);
+        make.height.mas_equalTo(@40);
+    }];
+//    self.landBtn.frame = CGRectMake(20, kScreenHeight-40-100, kScreenWidth-20, 40);
+
 }
-- (void)touchesEnded:(NSSet<UITouch *> *)touches withEvent:(UIEvent *)event{
-    [self.view endEditing:YES];
+
+
+#pragma mark -- 手势
+-(void)TapClick:(UITapGestureRecognizer *)tap {
+    [_phoneField resignFirstResponder];
+    [_passwordField resignFirstResponder];
 }
+
+
+#pragma mark -- 键盘
+-(void)keyboardWillShow:(NSNotification *)note {
+    
+    CGRect keyBoardRect = [note.userInfo[UIKeyboardFrameEndUserInfoKey] CGRectValue];
+    CGFloat keyboardH = keyBoardRect.size.height;
+    
+    float textY = _passwordField.frame.origin.y;//cell距离顶部的距离
+    CGFloat bottomY = self.view.frame.size.height-keyboardH-100;
+    
+    if (textY >= bottomY) {
+        return;
+    }
+    
+    CGFloat moveHeight = bottomY-textY+20;  // 要移动的距离
+    
+    [UIView animateWithDuration:0.3f animations:^{
+        
+        [self.scroll mas_updateConstraints:^(MASConstraintMaker *make) {
+            make.top.equalTo(self.loginBtn.mas_bottom).offset(-moveHeight);
+        }];
+        
+    }];
+    
+}
+
+-(void)keyboardWillHide:(NSNotification *)note {
+    [UIView animateWithDuration:0.3f animations:^{
+        
+        [self.scroll mas_updateConstraints:^(MASConstraintMaker *make) {
+            make.top.equalTo(self.loginBtn.mas_bottom).offset(1);
+        }];
+        
+    }];
+}
+
+
+
+#pragma mark -- 代理
+-(BOOL)textFieldShouldReturn:(UITextField *)textField {
+
+    return YES;
+}
+
+-(BOOL)textFieldShouldClear:(UITextField *)textField {
+    return YES;
+}
+
+-(BOOL)textField:(UITextField *)textField shouldChangeCharactersInRange:(NSRange)range replacementString:(NSString *)string {
+    if ([string isEqualToString:@"n"])//按会车可以改变
+    {
+        return YES;
+    }
+    
+    NSString * toBeString = [textField.text stringByReplacingCharactersInRange:range withString:string]; //得到输入框的内容
+    
+//    if (_passwordField == textField) //判断是否时我们想要限定的那个输入框
+//    {
+//        if ([toBeString length] > 20)
+//        {   //如果输入框内容大于20则弹出警告
+//            textField.text = [toBeString substringToIndex:20];
+//            return NO;
+//        }
+//    }
+    return YES;
+}
+
+
+
 #pragma mark --- Events Handel
 
-- (void)forgetBtnClick{
+-(void)loginBtnClick {
+    // 最上面登录
+    [UIView animateWithDuration:0.6 animations:^{
+       [_moveLab mas_updateConstraints:^(MASConstraintMaker *make) {
+           make.centerX.equalTo(_loginBtn);
+       }];
+    }];
+    self.scroll.contentOffset = CGPointMake(0, 0);
+}
+
+-(void)registerBtnClick {
+    // 注册按钮
+    [UIView animateWithDuration:0.5 animations:^{
+        [_moveLab mas_updateConstraints:^(MASConstraintMaker *make) {
+            make.centerX.equalTo(_loginBtn).offset(_registerBtn.frame.origin.x-_loginBtn.frame.origin.x);
+        }];
+    }];
     
-    forgetViewController * forgetVC = [[forgetViewController alloc] init];
-    [self.navigationController pushViewController:forgetVC animated:NO];
+    self.scroll.contentOffset = CGPointMake(kScreenWidth, 0);
+}
+
+// 账号密码登录
+- (void)accountBtnClick{
+    
+    [UIView animateWithDuration:0.3 animations:^{
+       [self.moveLine mas_updateConstraints:^(MASConstraintMaker *make) {
+           make.left.equalTo(self.accountBtn);
+       }];
+    }];
+}
+
+//  快速登录
+- (void)fastLandClick{
+    
+    [UIView animateWithDuration:0.3 animations:^{
+       
+        [self.moveLine mas_updateConstraints:^(MASConstraintMaker *make) {
+            make.left.equalTo(self.accountBtn).offset(self.fastLand.frame.origin.x-self.accountBtn.frame.origin.x);
+        }];
+        
+    }];
     
 }
 
+// 最下面登录按钮
 - (void)landBtnClick{
     
     imUserName = @"visitor2";
@@ -108,16 +450,22 @@
     
     // 跳到主界面
     
+    [[NSUserDefaults standardUserDefaults] setBool:YES forKey:isLogin];
+    [self dismissViewControllerAnimated:YES completion:nil];
     
 }
 
-- (void)registerClick{
-    
-    registerViewController * registerVC = [[registerViewController alloc] init];
-    [self.navigationController pushViewController:registerVC animated:NO];
-    
+
+#pragma mark -- scrollerView delegate
+-(void)scrollViewDidScroll:(UIScrollView *)scrollView {
     
 }
+
+-(void)scrollViewWillBeginDragging:(UIScrollView *)scrollView {
+   
+}
+
+
 
 
 - (void)didReceiveMemoryWarning {

@@ -38,7 +38,8 @@
         _selectedTitleColor = [UIColor colorWithRed:255.0/255.0 green:0.0/255.0 blue:121/255.0 alpha:1.0];
         
         _segmentHeight = 44.0;
-
+        
+        _scrollLineWidthIsDivide = YES;
     }
     return self;
 }
