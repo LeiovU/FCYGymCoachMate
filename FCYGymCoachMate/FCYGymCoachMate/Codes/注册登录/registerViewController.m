@@ -147,7 +147,7 @@
         button.tag = 10;
         [button addTarget:self action:@selector(sendpasswordClick:) forControlEvents:UIControlEventTouchUpInside];
         button.backgroundColor = [UIColor colorWithRed:206/255.0f green:206/255.0f blue:206/255.0f alpha:1.0f];
-        [button setTitleColor:[UIColor blackColor] forState: UIControlStateNormal];
+        [button setTitleColor:[UIColor whiteColor] forState: UIControlStateNormal];
         _phoneNumTF.rightView = button;
         _phoneNumTF.rightViewMode =  UITextFieldViewModeAlways;
         _phoneNumTF.borderStyle = UITextBorderStyleRoundedRect;

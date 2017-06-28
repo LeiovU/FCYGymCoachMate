@@ -35,6 +35,7 @@
 //    self.window.rootViewController = tabVC;
 //    [self.window makeKeyAndVisible];
     
+    [[NSUserDefaults standardUserDefaults] removeObjectForKey:isLogin];  // 先移除
     
     
     self.window = [[UIWindow alloc]initWithFrame:[UIScreen mainScreen].bounds];
@@ -73,7 +74,7 @@
     [self.window makeKeyAndVisible];
     
     
-    if ([[NSUserDefaults standardUserDefaults] boolForKey:isLogin]) {
+    if (![[[NSUserDefaults standardUserDefaults] objectForKey:isLogin] isEqualToString:@"firstLogin"]) {
         landViewController *landVC = [[landViewController alloc]init];
         [self.window.rootViewController presentViewController:landVC animated:YES completion:nil];
     }

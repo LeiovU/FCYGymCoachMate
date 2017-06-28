@@ -18,7 +18,9 @@
 
 #define LibPATHS [NSSearchPathForDirectoriesInDomains(NSLibraryDirectory, NSUserDomainMask, YES) lastObject]
 
-@interface landViewController ()<UITextFieldDelegate,UIScrollViewDelegate>
+@interface landViewController ()<UITextFieldDelegate,UIScrollViewDelegate,UIGestureRecognizerDelegate> {
+    NSTimer * _timer;
+}
 
 @property (nonatomic,strong) UIButton *loginBtn;   // 登录
 @property (nonatomic,strong) UIButton *registerBtn;  // 注册
@@ -36,6 +38,9 @@
 @property (nonatomic,strong) UITextField *passwordField;
 @property (nonatomic,strong) UIButton *landBtn;
 @property (nonatomic,strong) UILabel *moveLine;
+
+@property (nonatomic,strong) UITextField *phoneNum;
+@property (nonatomic,strong) UITextField *verifyCode;
 
 
 @end
@@ -58,8 +63,9 @@
 -(UIScrollView *)scroll {
     if (!_scroll) {
         UIScrollView *scrollView = [[UIScrollView alloc] init];
-        scrollView.contentSize = CGSizeMake(2*kScreenWidth, kScreenHeight-60);
-//        scrollView.showsHorizontalScrollIndicator = NO;
+        scrollView.contentSize = CGSizeMake(2*kScreenWidth, 0);
+        scrollView.showsHorizontalScrollIndicator = NO;
+        scrollView.userInteractionEnabled = YES;
         scrollView.scrollsToTop = YES;
         scrollView.scrollEnabled = YES;
         scrollView.bounces = YES;
@@ -67,7 +73,7 @@
         scrollView.delegate = self;
         scrollView.backgroundColor = [UIColor clearColor];
         
-        UITapGestureRecognizer *tapGR = [[UITapGestureRecognizer alloc]initWithTarget:scrollView action:@selector(TapClick:)];
+        UITapGestureRecognizer *tapGR = [[UITapGestureRecognizer alloc]initWithTarget:self action:@selector(TapClick:)];
         tapGR.numberOfTapsRequired = 1; //单击
         [scrollView addGestureRecognizer:tapGR];
         
@@ -116,13 +122,14 @@
         UITextField *  phoneField = [[UITextField alloc] init];
         phoneField.placeholder = @" 请输入您的用户名";
         phoneField.font = [UIFont systemFontOfSize:14];
-        phoneField.secureTextEntry = YES;
         phoneField.delegate = self;
         UILabel * phoneLabel = [[UILabel alloc] initWithFrame:CGRectMake(0, 0, 60, 30)];
         phoneLabel.text = @"用户名";
         phoneLabel.textAlignment = NSTextAlignmentCenter;
         phoneField.leftView = phoneLabel;
         phoneField.leftViewMode = UITextFieldViewModeAlways;
+        phoneField.clearButtonMode = UITextFieldViewModeAlways;
+        phoneField.keyboardType = UIKeyboardTypeDefault;
         _phoneField = phoneField;
     }
     return _phoneField;
@@ -140,6 +147,7 @@
         passwordLabel.textAlignment = NSTextAlignmentCenter;
         passwordField.leftView = passwordLabel;
         passwordField.leftViewMode = UITextFieldViewModeAlways;
+        passwordField.clearButtonMode = UITextFieldViewModeAlways;
         _passwordField = passwordField;
     }
     return _passwordField;
@@ -168,15 +176,83 @@
     return _moveLine;
 }
 
+-(UITextField *)phoneNum {
+    if (!_phoneNum) {
+        UITextField *  phoneField = [[UITextField alloc] init];
+        phoneField.placeholder = @" 请输入您的手机号";
+        phoneField.font = [UIFont systemFontOfSize:14];
+        phoneField.delegate = self;
+        UILabel * phoneLabel = [[UILabel alloc] initWithFrame:CGRectMake(0, 0, 60, 30)];
+        phoneLabel.text = @"手机号";
+        phoneLabel.textAlignment = NSTextAlignmentCenter;
+        phoneField.leftView = phoneLabel;
+        phoneField.leftViewMode = UITextFieldViewModeAlways;
+        phoneField.clearButtonMode = UITextFieldViewModeAlways;
+        phoneField.keyboardType = UIKeyboardTypeNumberPad;
+        
+        UIButton * button = [[UIButton alloc] initWithFrame:CGRectMake(0, 0, 100, 30)];
+        [button setTitle:@"发送短信验证码" forState:UIControlStateNormal];
+        button.tag = 10;
+        button.titleLabel.font = [UIFont systemFontOfSize:14];
+        button.titleLabel.adjustsFontSizeToFitWidth = YES;
+        [button addTarget:self action:@selector(sendVerifyCodeClick:) forControlEvents:UIControlEventTouchUpInside];
+        button.backgroundColor = [UIColor cyanColor];
+        [button setTitleColor:[UIColor whiteColor] forState: UIControlStateNormal];
+        phoneField.rightView = button;
+        phoneField.rightViewMode = UITextFieldViewModeAlways;
+        
+        _phoneNum = phoneField;
+    }
+    return _phoneNum;
+}
+
+-(UITextField *)verifyCode {
+    if (!_verifyCode) {
+        
+        UITextField *  passwordField = [[UITextField alloc] init];
+        passwordField.placeholder = @" 请输入验证码";
+        passwordField.font = [UIFont systemFontOfSize:14];
+        passwordField.secureTextEntry = YES;
+        passwordField.delegate = self;
+        UILabel * passwordLabel = [[UILabel alloc] initWithFrame:CGRectMake(0, 0, 60, 30)];
+        passwordLabel.text = @"验证码";
+        passwordLabel.textAlignment = NSTextAlignmentCenter;
+        passwordField.leftView = passwordLabel;
+        passwordField.leftViewMode = UITextFieldViewModeAlways;
+        passwordField.clearButtonMode = UITextFieldViewModeAlways;
+        
+
+        _verifyCode = passwordField;
+        
+    }
+    return _verifyCode;
+}
+
+#pragma mark -- 获取验证码
+-(void)sendVerifyCodeClick:(UIButton *)sender {
+    
+    UIButton * passwordBtn = (UIButton *)_phoneNum.rightView;
+    passwordBtn.backgroundColor = [UIColor colorWithRed:117.0/255.0f green:203.0/255.0f blue:60.0/255.0f alpha:1.0f];
+    [passwordBtn setTitleColor:[UIColor whiteColor] forState:UIControlStateNormal];
+    [passwordBtn setTitle:@"(60s)后再获取" forState:UIControlStateNormal];
+    passwordBtn.userInteractionEnabled = NO;
+    
+    [_timer setFireDate:[NSDate distantPast]];
+}
+
 
 
 - (void)viewDidLoad {
     [super viewDidLoad];
+    self.view.userInteractionEnabled = YES;
 
     [self setupUI];
     
     [[NSNotificationCenter defaultCenter] addObserver:self selector:@selector(keyboardWillShow:) name:UIKeyboardWillShowNotification object:nil];
     [[NSNotificationCenter defaultCenter]addObserver:self selector:@selector(keyboardWillHide:) name:UIKeyboardWillHideNotification object:nil];
+    
+    _timer = [NSTimer scheduledTimerWithTimeInterval: 1 target:self selector:@selector(countdown) userInfo: nil repeats:YES];
+    [_timer setFireDate:[NSDate  distantFuture]];
     
 }
 - (void)setupUI{
@@ -281,6 +357,27 @@
         make.height.mas_equalTo(@30);
     }];
     
+    [self.scroll addSubview:self.phoneNum];
+    self.phoneNum.alpha = 0;
+    [self.phoneNum mas_makeConstraints:^(MASConstraintMaker *make) {
+        make.top.equalTo(self.accountBtn.mas_bottom).offset(20);
+        make.left.equalTo(self.scroll).offset(leftMargin/3.0);
+        make.right.equalTo(self.scroll.mas_left).offset(kScreenWidth-leftMargin/3.0);
+        make.height.mas_equalTo(@30);
+    }];
+    
+    [self.scroll addSubview:self.verifyCode];
+    self.verifyCode.alpha = 0;
+    [self.verifyCode mas_makeConstraints:^(MASConstraintMaker *make) {
+        make.top.equalTo(self.phoneField.mas_bottom).offset(20);
+        make.left.equalTo(self.phoneField);
+        make.right.equalTo(self.phoneField);
+        make.height.mas_equalTo(@30);
+    }];
+    
+    
+    
+    
     UIView *line1 = [[UIView alloc]init];
     line1.backgroundColor = Font_Week_Color;
     [self.scroll addSubview:line1];
@@ -316,16 +413,36 @@
         make.right.equalTo(self.passwordField);
         make.height.mas_equalTo(@40);
     }];
-//    self.landBtn.frame = CGRectMake(20, kScreenHeight-40-100, kScreenWidth-20, 40);
 
 }
 
 
 #pragma mark -- 手势
 -(void)TapClick:(UITapGestureRecognizer *)tap {
+    
     [_phoneField resignFirstResponder];
     [_passwordField resignFirstResponder];
+    [_phoneNum resignFirstResponder];
+    [_verifyCode resignFirstResponder];
 }
+
+
+#pragma mark -- 倒计时
+//倒计时
+- (void)countdown{
+    
+    UIButton * passwordBtn = (UIButton *)_phoneNum.rightView;
+    static  int i = 60;
+    [passwordBtn setTitle:[NSString stringWithFormat:@"(%d)后再获取",i--] forState:UIControlStateNormal];
+    if (i == -1) {
+        [_timer  setFireDate:[NSDate distantFuture]];
+        passwordBtn.userInteractionEnabled = YES;
+        i = 60;
+        [passwordBtn setTitle:@"(60s)后再获取" forState:UIControlStateNormal];
+    }
+}
+
+
 
 
 #pragma mark -- 键盘
@@ -334,14 +451,22 @@
     CGRect keyBoardRect = [note.userInfo[UIKeyboardFrameEndUserInfoKey] CGRectValue];
     CGFloat keyboardH = keyBoardRect.size.height;
     
-    float textY = _passwordField.frame.origin.y;//cell距离顶部的距离
-    CGFloat bottomY = self.view.frame.size.height-keyboardH-100;
+    float textY ;
+    CGFloat bottomY = self.view.frame.size.height;
     
-    if (textY >= bottomY) {
+    if(_phoneField.isEditing) {
+        textY = bottomY - _passwordField.frame.origin.y-10;
+    }else if (_passwordField.isEditing || _verifyCode.isEditing) {
+        textY = bottomY-_passwordField.frame.origin.y-80;
+    }else if (_phoneNum.isEditing) {
+        textY = bottomY-_phoneNum.frame.origin.y-100;
+    }
+    
+    if (textY >= keyboardH) {
         return;
     }
     
-    CGFloat moveHeight = bottomY-textY+20;  // 要移动的距离
+    CGFloat moveHeight = keyboardH-textY+60;  // 要移动的距离
     
     [UIView animateWithDuration:0.3f animations:^{
         
@@ -368,6 +493,8 @@
 #pragma mark -- 代理
 -(BOOL)textFieldShouldReturn:(UITextField *)textField {
 
+    [textField resignFirstResponder];
+    
     return YES;
 }
 
@@ -376,21 +503,25 @@
 }
 
 -(BOOL)textField:(UITextField *)textField shouldChangeCharactersInRange:(NSRange)range replacementString:(NSString *)string {
-    if ([string isEqualToString:@"n"])//按会车可以改变
+    if ([string isEqualToString:@"\n"])//按会车可以改变
     {
         return YES;
     }
     
     NSString * toBeString = [textField.text stringByReplacingCharactersInRange:range withString:string]; //得到输入框的内容
     
-//    if (_passwordField == textField) //判断是否时我们想要限定的那个输入框
-//    {
-//        if ([toBeString length] > 20)
-//        {   //如果输入框内容大于20则弹出警告
-//            textField.text = [toBeString substringToIndex:20];
-//            return NO;
-//        }
-//    }
+    if (textField == _phoneNum) {
+        if ([toBeString length] > 11) {
+            textField.text = [toBeString substringToIndex:11];
+            UIAlertController * alertController = [UIAlertController alertControllerWithTitle: @"温馨提示"                                                                             message:@"输入的手机号码位数超过了11位"                                                                       preferredStyle:UIAlertControllerStyleAlert];
+            [alertController addAction:[UIAlertAction actionWithTitle:@"OK" style:UIAlertActionStyleDefault handler:^(UIAlertAction *action) {
+                [_phoneNum resignFirstResponder];
+            }]];
+            [self presentViewController: alertController animated: YES completion: nil];
+        }
+
+    }
+    
     return YES;
 }
 
@@ -422,6 +553,11 @@
 // 账号密码登录
 - (void)accountBtnClick{
     
+    self.phoneNum.alpha = 0;
+    self.verifyCode.alpha = 0;
+    self.phoneField.alpha = 1;
+    self.passwordField.alpha = 1;
+    
     [UIView animateWithDuration:0.3 animations:^{
        [self.moveLine mas_updateConstraints:^(MASConstraintMaker *make) {
            make.left.equalTo(self.accountBtn);
@@ -431,6 +567,11 @@
 
 //  快速登录
 - (void)fastLandClick{
+    
+    self.phoneField.alpha = 0;
+    self.passwordField.alpha = 0;
+    self.phoneNum.alpha = 1;
+    self.verifyCode.alpha = 1;
     
     [UIView animateWithDuration:0.3 animations:^{
        
@@ -450,7 +591,7 @@
     
     // 跳到主界面
     
-    [[NSUserDefaults standardUserDefaults] setBool:YES forKey:isLogin];
+    [[NSUserDefaults standardUserDefaults] setObject:@"firstLogin" forKey:isLogin];
     [self dismissViewControllerAnimated:YES completion:nil];
     
 }
@@ -459,10 +600,29 @@
 #pragma mark -- scrollerView delegate
 -(void)scrollViewDidScroll:(UIScrollView *)scrollView {
     
+    if (scrollView.contentOffset.x > kScreenWidth/2.0) {
+        [UIView animateWithDuration:0.5 animations:^{
+            [_moveLab mas_updateConstraints:^(MASConstraintMaker *make) {
+                make.centerX.equalTo(_loginBtn).offset(_registerBtn.frame.origin.x-_loginBtn.frame.origin.x);
+            }];
+        }];
+    }else if (scrollView.contentOffset.x < kScreenWidth/2.0) {
+        [UIView animateWithDuration:0.6 animations:^{
+            [_moveLab mas_updateConstraints:^(MASConstraintMaker *make) {
+                make.centerX.equalTo(_loginBtn);
+            }];
+        }];
+    }
+    
 }
 
 -(void)scrollViewWillBeginDragging:(UIScrollView *)scrollView {
-   
+    
+    [_phoneField resignFirstResponder];
+    [_passwordField resignFirstResponder];
+    [_phoneNum resignFirstResponder];
+    [_verifyCode resignFirstResponder];
+    
 }
 
 
